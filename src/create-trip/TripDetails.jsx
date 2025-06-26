@@ -39,20 +39,20 @@ const TripDetails = () => {
   }
 
   const handleGoBack = () => {
-    navigate('/create-trip') // Navigate back to the main form page
+    navigate('/ ') // Navigate back to the main form page
   }
 
   return (
     <div className='min-h-screen bg-gray-100 flex items-center justify-center p-3 font-sans'>
       <div className='bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full'>
-        <div className='flex justify-end mb-4'>
+        {/* <div className='flex justify-end mb-4'>
           <Button
             onClick={handleGoBack}
             className='bg-blue-500 hover:bg-blue-600'
           >
-            Go Back to the Form
+            Go Back to home..
           </Button>
-        </div>
+        </div> */}
         <h1 className='text-3xl font-bold text-gray-800 mb-4 text-center'>
           {travelPlan.location} - {travelPlan.tripDuration}
         </h1>
@@ -162,13 +162,13 @@ const TripDetails = () => {
                         <h4 className='font-semibold text-lg text-gray-800'>
                           {item.placeName} ({item.time})
                         </h4>
-                        {item.placeImageURL && (
+                        {/* {item.placeImageURL && (
                           <img
                             src={item.placeImageURL}
                             alt={item.placeName}
                             className='w-full h-32 object-cover rounded-md mt-2 mb-2'
                           />
-                        )}
+                        )} */}
                         <p className='text-gray-700 text-sm'>
                           {item.placeDetails}
                         </p>
@@ -185,6 +185,7 @@ const TripDetails = () => {
                             item.campingOptions.length > 0 && (
                               <li>Camping: {item.campingOptions.join(', ')}</li>
                             )}
+
                           {item.hotelOptions && (
                             <li>Hotels: {item.hotelOptions}</li>
                           )}

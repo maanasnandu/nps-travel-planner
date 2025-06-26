@@ -92,4 +92,5 @@ export const InterestsOptionsList=[
     desc: 'Take a breather, relax and have fun!',
     icon: '🏞️',
   }
+  
 ]

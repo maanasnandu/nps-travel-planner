@@ -6,10 +6,10 @@ import {
 } from '../ui/collapsible'
 import { Button } from '../ui/button'
 import { Link } from 'react-router-dom'
+import { ChevronDownIcon } from '@radix-ui/react-icons' // Import an icon for the collapsible trigger
 
 function Hero () {
- 
-    const items = [
+  const items = [
     {
       id: 1,
       name: 'Support Park Staff',
@@ -38,64 +38,69 @@ function Hero () {
     {
       id: 6,
       name: 'Advocate for Climate Action',
-      type: 'support initiatives that address climate change.'
+      type: 'Support initiatives that address climate change.'
     }
   ]
+
   return (
-    
-    <div className=' items-center mx-2 gap-9 mt-2'>
-      <h1 className='font-semibold text-[18px]'>
-        Did you know?
-        <br />
-        <span className='font-extrabold text-[#515A47]'>
-          National parks in the US are facing a multitude of problems, including
-          budget cuts, staffing shortages, and the effects of climate change,
-          leading to concerns about their preservation and visitor experience!
-        </span>
-      </h1>
-      <br />
-      <div>
-        <h2 className='font-semibold text-[15px] text-black-500 text-center'>
+    <div className='container mx-auto px-4 py-8 md:py-12'>
+      {/* Section 1: Did You Know? */}
+      <section className='mb-10 text-center'>
+        <h3 className='text-3xl md:text-4xl font-bold mb-4 leading-tight'>
+          Did you know?
+          <br />
+          <span className='text-[#515A47] font-extrabold'>
+            Our National Parks face significant challenges like budget cuts,
+            staffing shortages, and climate change impacts, threatening their
+            preservation and the visitor experience.
+          </span>
+        </h3>
+      </section>
+
+      {/* Section 2: How to Protect Them */}
+      <section className='mb-10'>
+        <h2 className='text-xl md:text-2xl font-semibold text-center mb-6'>
           Here's how to protect them: (click on each item to expand)
         </h2>
-        <div className='flex cursor-pointer'>
-          <div className='bg-white p-2 rounded-sm cursor-pointer'>
-            <ul className='space-y-4'>
-              {items.map(item => (
-                <div className=' border border-black-20 rounded-md p-4 flex justify-between items-center cursor-pointer'>
-                  <Collapsible>
-                    <CollapsibleTrigger>
-                      <p className='text-sm font-semibold text-shadow-amber-400 !important'>
-                        {item.id}. {item.name}
-                      </p>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <p className='text-sm'>{item.type}</p>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
-              ))}
-            </ul>
-          </div>
+        <div className='max-w-3xl mx-auto'>
+          <ul className='space-y-4'>
+            {items.map(item => (
+              <li
+                key={item.id}
+                className='bg-white border border-gray-200 rounded-lg shadow-sm'
+              >
+                <Collapsible className='p-4'>
+                  <CollapsibleTrigger className='flex justify-between items-center w-full text-left'>
+                    <p className='text-base md:text-lg font-semibold text-gray-800'>
+                      {item.id}. {item.name}
+                    </p>
+                    <ChevronDownIcon className='h-5 w-5 text-gray-600 transition-transform data-[state=open]:rotate-180' />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className='pt-2 text-gray-600 text-sm md:text-base'>
+                    <p>{item.type}</p>
+                  </CollapsibleContent>
+                </Collapsible>
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
-      <br />
-      <h1 className='font-semibold text-[18px]'>
-        Discover Your Next &nbsp;
-        <span className='font-extrabold text-[#515A47]'>
-          National Park Adventure
-        </span>
-        : Get a Personalized Itinerary with the help of AI!
-      </h1>
+      </section>
 
-      <br />
-      <div className='flex flex-col items-center'>
+      {/* Section 3: Discover Your Next Adventure */}
+      <section className='text-center mb-10'>
+        <h1 className='text-2xl md:text-3xl font-bold mb-6 leading-tight'>
+          Discover your next &nbsp;
+          <span className='font-extrabold text-[#515A47]'>
+            National Park adventure
+          </span>
+          : Get a personalized itinerary with the help of AI!
+        </h1>
         <Link to={'/create-trip'}>
-          <Button className={'bg-amber-900'}>Get Started, It's Free</Button>
+          <Button className='bg-amber-900 hover:bg-amber-800 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg transition duration-300 ease-in-out transform hover:scale-105'>
+            Get Started, It's Free
+          </Button>
         </Link>
-      </div>
-      <br />
-     
+      </section>
     </div>
   )
 }

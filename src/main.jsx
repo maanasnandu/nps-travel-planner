@@ -5,6 +5,7 @@ import App from './App.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import CreateTrip from './create-trip'
 import Header from './components/custom/Header'
+import Footer from './components/custom/Footer'
 import TripDetails from './create-trip/TripDetails'
 
 const router = createBrowserRouter([
@@ -18,12 +19,12 @@ const router = createBrowserRouter([
   },
   {
     path: '/trip-details',
-    element:<TripDetails/>
+    element: <TripDetails />
   }
 ])
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <Header/>
+    <Header />
     <RouterProvider router={router} />
   </StrictMode>
 )

@@ -44,33 +44,50 @@ const GooglePlacesAutocomplete = () => {
     interests: []
   })
 
+  // State for looping icons
+  const [currentIconIndex, setCurrentIconIndex] = useState(0)
+  const loadingIcons = ['🌲', '⛰️', '🏞️', '🐻', '🫎', '🛶', '⛺', '🌌']
+
   const [isLoading, setIsLoading] = useState(false)
 
-  const [travelPlan, setTravelPlan] = useState(null)
   const [error, setError] = useState(null)
-  const mapsAPIKey = 'AIzaSyBKDIGrnIb2mrnKUeNX7QSZogX9JYVoiSA'
+  const mapsAPIKey = import.meta.env.VITE_GOOGLE_PLACE_API_KEY
   // Callback for when the Google Maps API script finishes loading
   const onLoadScript = useCallback(mapsAPIKey => {
-    if (window.google && window.google.maps) {
-      setIsApiLoaded(true)
-      return
+    // if (window.google && window.google.maps) {
+    setIsApiLoaded(true)
+    //   return
+    //}
+
+    // const script = document.createElement('script')
+    // script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsAPIKey}&libraries=places`
+    // script.async = true
+    // script.defer = true
+    // script.id = 'google-maps-script' // Add an ID to easily check if it exists
+    // script.onload = () => {
+    //   console.log('Google Maps API loaded successfully.')
+    //   setIsApiLoaded(true)
+    // }
+    // script.onerror = () => {
+    //   console.error('Failed to load Google Maps script.')
+    //   setError('Failed to load Google Maps. Please refresh the page.')
+    // }
+    // document.head.appendChild(script)
+  }, [])
+
+  // Effect for looping icons
+  useEffect(() => {
+    let interval
+    if (isLoading) {
+      interval = setInterval(() => {
+        setCurrentIconIndex(prevIndex => (prevIndex + 1) % loadingIcons.length)
+      }, 1000) // Change icon every 1000ms
+    } else {
+      setCurrentIconIndex(0) // Reset icon when not loading
     }
 
-    const script = document.createElement('script')
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${mapsAPIKey}&libraries=places`
-    script.async = true
-    script.defer = true
-    script.id = 'google-maps-script' // Add an ID to easily check if it exists
-    script.onload = () => {
-      console.log('Google Maps API loaded successfully.')
-      setIsApiLoaded(true)
-    }
-    script.onerror = () => {
-      console.error('Failed to load Google Maps script.')
-      setError('Failed to load Google Maps. Please refresh the page.')
-    }
-    document.head.appendChild(script)
-  }, [])
+    return () => clearInterval(interval) // Cleanup interval on unmount or when loading stops
+  }, [isLoading, loadingIcons.length]) // Re-run if loading state or icons array length changes
 
   // Effect to initialize Google Places Autocomplete once API is loaded and inputRef is ready
   useEffect(() => {
@@ -80,18 +97,19 @@ const GooglePlacesAutocomplete = () => {
       window.google &&
       window.google.maps
     ) {
-      const mapDiv = document.getElementById('google-map-display')
-
-      if (mapDiv && !mapRef.current) {
-        // Initialize map only if it hasn't been initialized
-        mapRef.current = new window.google.maps.Map(mapDiv, {
-          center: mapCenter,
-          zoom: mapZoom,
-          disableDefaultUI: true,
-          zoomControl: true
-        })
-        console.log('Google Map initialized.')
-      } else if (mapRef.current) {
+      if (!mapRef.current) {
+        const mapDiv = document.getElementById('google-map-display')
+        if (mapDiv) {
+          // Initialize map only if it hasn't been initialized
+          mapRef.current = new window.google.maps.Map(mapDiv, {
+            center: mapCenter,
+            zoom: mapZoom,
+            disableDefaultUI: true,
+            zoomControl: true
+          })
+          console.log('Google Map initialized.')
+        }
+      } else {
         // If map already exists, just update its center/zoom in case state changed
         mapRef.current.setCenter(mapCenter)
         mapRef.current.setZoom(mapZoom)
@@ -163,6 +181,7 @@ const GooglePlacesAutocomplete = () => {
           setInputValue('')
           setMapCenter({ lat: 39.8283, lng: -98.5795 })
           setMapZoom(4)
+          setFormData(prev => ({ ...prev, location: null }))
         }
         console.log('Selected Place:', selectedPlace)
       })
@@ -176,7 +195,7 @@ const GooglePlacesAutocomplete = () => {
       //   // The instance will be garbage collected when the input element is removed.
       // }
     }
-  }, [isApiLoaded]) // Rerun effect when API loading status changes
+  }, [isApiLoaded, place, mapCenter, mapZoom]) // Rerun effect when API loading status changes
 
   // Handle manual input changes
   const handleInputChange = e => {
@@ -241,6 +260,7 @@ const GooglePlacesAutocomplete = () => {
 
   const handleGenerateTrip = async () => {
     setError(null)
+    setIsLoading(true)
     // setTravelPlan(null)
     //Check if any field is missing, return if missing
     if (
@@ -250,7 +270,8 @@ const GooglePlacesAutocomplete = () => {
       !formData?.interests ||
       !formData?.travelers
     ) {
-      alert('Please enter all the information')
+      alert('Please enter all the information to generate your trip')
+      setIsLoading(false)
       return
     }
 
@@ -265,8 +286,8 @@ const GooglePlacesAutocomplete = () => {
 
     Include ${
       formData.interests
-    } options with campground or hotel names nearby, hiking options in the park, a park image url, geo coordinates, rating, descriptions.
-    Suggest a detailed itinerary with placeName, place details, place image url, geo coordinates, ticket pricing, if a permit is required or not for the hike, rating, specific hiking options, camping options, hotel options, time of day for each location for each day.
+    } options with campground or hotel names nearby, hiking options in the park, a **direct, publicly accessible park image URL (e.g., from https://www.tripadvisor.com, or a similar public domain image repository that hosts direct image files) BUT NOT FROM NPS.gov**, geo coordinates, rating, descriptions.
+    Suggest a detailed itinerary with placeName, place details, stargazing opportunities (if any),   a **direct, publicly accessible hiking destinations nearby image URL (e.g., from https://www.tripadvisor.com, or a similar public domain image repository that hosts direct image files) BUT NOT FROM NPS.gov,**, geo coordinates, ticket pricing, if a permit is required or not for the hike, rating, specific hiking options, camping options, hotel options, time of day for each location for each day.
     Also include general budget tips and important notes for the trip.
 
     The response MUST be in JSON format matching the schema provided.`
@@ -378,7 +399,8 @@ const GooglePlacesAutocomplete = () => {
         }
       }
 
-      const apiKey = 'AIzaSyBttJ1eFlcLDssmN0k9ZAE5pNGhRIYF_y0' //Gemini api key
+      //'AIzaSyBttJ1eFlcLDssmN0k9ZAE5pNGhRIYF_y0'
+      const apiKey = import.meta.env.VITE_GOOGLE_GEMINI_API_KEY //Gemini api key
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`
 
       const response = await fetch(apiUrl, {
@@ -387,6 +409,9 @@ const GooglePlacesAutocomplete = () => {
         body: JSON.stringify(payload)
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`)
+      }
       const result = await response.json()
       if (
         result.candidates &&
@@ -407,6 +432,8 @@ const GooglePlacesAutocomplete = () => {
     } catch (err) {
       console.log('Error generating travel plan: ', err)
       setError('Error occurred while generating travel plan')
+    } finally {
+      setIsLoading(false)
     }
 
     console.log('Generating Trip with data: ', formData)
@@ -427,11 +454,17 @@ const GooglePlacesAutocomplete = () => {
           setInputValue={setInputValue}
           setMapCenter={setMapCenter}
           setMapZoom={setMapZoom}
-          isApiLoaded={true}
+          isApiLoaded={isApiLoaded}
           mapContainerStyle={mapContainerStyle}
           mapZoom={mapZoom}
           mapCenter={mapCenter}
           defaultMapOptions={defaultMapOptions}
+          setFormData={setFormData}
+          setError={setError}
+          setIsLoading={setIsLoading}
+          mapRef={mapRef}
+          markerRef={markerRef}
+          setIsApiLoaded={setIsApiLoaded}
         />
       </LoadScript>
 
@@ -505,13 +538,39 @@ const GooglePlacesAutocomplete = () => {
         ))}
       </div>
 
-      <div className='my-10 justify-center'>
+      <div className='my-10 flex justify-center'>
         <Button
           className='cursor-pointer px-8 py-3 bg-[#515a47] text-white rounded-lg shadow-md hover:bg-[#400406] transition-colors duration-200 flex items-center gap-2'
           disabled={isLoading}
           onClick={handleGenerateTrip}
         >
-          {isLoading ? 'Generating....🏕️' : 'Generate Trip..🛩️'}
+          {isLoading ? (
+            <>
+              <svg
+                className='animate-spin h-5 w-5 mr-3'
+                xmlns='http://www.w3.org/2000/svg'
+                fill='none'
+                viewBox='0 0 24 24'
+              >
+                <circle
+                  className='opacity-25'
+                  cx='12'
+                  cy='12'
+                  r='10'
+                  stroke='currentColor'
+                  strokeWidth='4'
+                ></circle>
+                <path
+                  className='opacity-75'
+                  fill='currentColor'
+                  d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                ></path>
+              </svg>
+              Generating....🏕️
+            </>
+          ) : (
+            'Generate Trip..🛩️'
+          )}
         </Button>
       </div>
       {error && (
@@ -544,7 +603,10 @@ const GooglePlacesAutocomplete = () => {
                 d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
               ></path>
             </svg>
-            <p className='mt-4 text-lg'>Generating your trip plan...</p>
+            <p className='mt-4 text-lg'>Generating your trip plan... </p>
+            <span className='inline-block w-md text-center'>
+              {loadingIcons[currentIconIndex]}
+            </span>
           </div>
         </div>
       )}
@@ -565,7 +627,13 @@ const InternalContent = ({
   mapContainerStyle,
   mapCenter,
   mapZoom,
-  defaultMapOptions
+  defaultMapOptions,
+  setFormData,
+  setError,
+  setIsLoading,
+  mapRef,
+  markerRef,
+  setIsApiLoaded
 }) => {
   const [mapLoaded, setMapLoaded] = useState(false)
 
@@ -577,7 +645,7 @@ const InternalContent = ({
     setMapLoaded(false)
   }, [])
 
-  const handleClearForm = () => {
+  const handleClearForm = useCallback(() => {
     setPlace(null)
     setInputValue('') // Clear input too
     setMapCenter({ lat: 39.8283, lng: -98.5795 })
@@ -592,7 +660,7 @@ const InternalContent = ({
     setError(null)
     setIsLoading(false)
 
-    if (markerRef) {
+    if (markerRef.current) {
       markerRef.current.setMap(null)
       markerRef.current = null
     }
@@ -602,18 +670,29 @@ const InternalContent = ({
       mapRef.current.setZoom(4)
       // To ensure a full re-initialization on return, you might also want to nullify mapRef.current
       // This forces the `if (mapDiv && !mapRef.current)` condition in useEffect to be true again
-      mapRef.current = null
+      // mapRef.current = null
       console.log('Map reference cleared for re-initialization.')
     }
     // Also re-trigger Google Maps script loading state if necessary
     setIsApiLoaded(false)
     // Remove the script element from the DOM to force a fresh load
-    const existingScript = document.getElementById('google-maps-script')
-    if (existingScript) {
-      existingScript.remove()
-      console.log('Google Maps script removed from DOM.')
-    }
-  }
+    //const existingScript = document.getElementById('google-maps-script')
+    // if (existingScript) {
+    //   existingScript.remove()
+    //   console.log('Google Maps script removed from DOM.')
+    // }
+  }, [
+    setPlace,
+    setInputValue,
+    setMapCenter,
+    setMapZoom,
+    setFormData,
+    setError,
+    setIsLoading,
+    mapRef,
+    markerRef,
+    setIsApiLoaded
+  ])
 
   return (
     <div className=' bg-gray-100 flex items-center justify-center p-3 font-sans'>
